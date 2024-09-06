@@ -21,7 +21,6 @@ basic_auth_param = openapi.Parameter(
 class SignIn(APIView):
     authentication_classes = [BasicAuthentication]
     @swagger_auto_schema(
-        method='POST',
         manual_parameters=[basic_auth_param],
         responses={
             '200': openapi.Response(description='User authenticated successfully'),
