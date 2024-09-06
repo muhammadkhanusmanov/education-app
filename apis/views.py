@@ -9,3 +9,27 @@ from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from rest_framework.decorators import api_view, authentication_classes, permission_classes 
+
+basic_auth_param = openapi.Parameter(
+    'Authorization',
+    openapi.IN_HEADER,
+    description="Base64",
+    type=openapi.TYPE_STRING
+)
+
+class SignIn(APIView):
+    authentication_classes = [BasicAuthentication]
+    @swagger_auto_schema(
+        method='POST',
+        manual_parameters=[basic_auth_param],
+        responses={
+            '200': openapi.Response(description='User authenticated successfully'),
+            '401': openapi.Response(description='Invalid credentials'),
+        },
+        description='User login'
+    )
+    def post(self, request, *args, **kwargs):
+        user =request.user
+        tkn, user = Token.objects.get_or_create(user=user)
+        return Response({"token": tkn.key}, status=status.HTTP_200_OK)
