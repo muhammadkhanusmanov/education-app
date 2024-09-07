@@ -10,6 +10,8 @@ from rest_framework.authentication import TokenAuthentication, BasicAuthenticati
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.decorators import api_view, authentication_classes, permission_classes 
+from .serializers import MessageSerializer
+from .models import Message
 
 basic_auth_param = openapi.Parameter(
     'Basic Authorization',
@@ -96,4 +98,76 @@ class SignUp(APIView):
             return Response({'token':tkn.key},status=status.HTTP_200_OK)
         except:
             return Response({'error':'bad request'},status=status.HTTP_400_BAD_REQUEST)
+        
+class MessageView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    @swagger_auto_schema(
+        operation_summary="Send a message",
+        manual_parameters=[token_auth_param],
+        operation_description="Send a message to another user",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['recipient_id', 'content'],
+            properties={
+                'recipient_id': openapi.Schema(type=openapi.TYPE_INTEGER, description="ID of the recipient user"),
+                'content': openapi.Schema(type=openapi.TYPE_STRING, description="Content of the message"),
+            },
+        ),
+        responses={
+            201: openapi.Response(
+                description="Message sent successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'status': openapi.Schema(type=openapi.TYPE_STRING),
+                    },
+                ),
+            ),
+            400: openapi.Response(description="Bad request"),
+            404: openapi.Response(description="Recipient not found"),
+        }
+    )
+    
+    def post(self, request):
+        sender = request.user
+        recipient_id = request.data.get('recipient_id')
+        content = request.data.get('content')
+
+        if not recipient_id or not content:
+            return Response({'error': 'Recipient ID and content are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            recipient = User.objects.get(id=recipient_id)
+        except User.DoesNotExist:
+            return Response({'error': 'Recipient not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        message = Message.objects.create(
+            sender=sender,
+            recipient=recipient,
+            content=content
+        )
+
+        message.save()
+        return Response({'status':'OK'}, status=status.HTTP_201_CREATED)
+    
+    
+    def get(self, request, pk: str):
+        user = request.user
+        try:
+            msg = Message.objects.get(recipient=user,id=pk)
+            msg = MessageSerializer(msg).data
+            return Response(msg,status=status.HTTP_200_OK)
+        except:
+            return Response({'error':'bad request'},status=status.HTTP_400_BAD_REQUEST)
+            
+        
+        
+        
+
+    # def get(self,request):
+    #     user = request.user
+    #     messages = Message.objects.filter(sender=user).order_by('-created_at')
+    #     serializer = MessageSerializer(messages, many=True, fields=('id', 'sender', 'recipient', 'created_at'))
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
         
