@@ -94,4 +94,6 @@ class SignUp(APIView):
             new_user.save()
             tkn = Token.objects.get(user=new_user)
             return Response({'token':tkn.key},status=status.HTTP_200_OK)
-
+        except:
+            return Response({'error':'bad request'},status=status.HTTP_400_BAD_REQUEST)
+        
