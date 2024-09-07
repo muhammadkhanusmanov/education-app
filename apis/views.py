@@ -12,11 +12,19 @@ from drf_yasg import openapi
 from rest_framework.decorators import api_view, authentication_classes, permission_classes 
 
 basic_auth_param = openapi.Parameter(
-    'Authorization',
+    'Basic Authorization',
     openapi.IN_HEADER,
     description="Base64",
     type=openapi.TYPE_STRING
 )
+
+token_auth_param = openapi.Parameter(
+    'Token Authorization',
+    openapi.IN_HEADER,
+    description="Token",
+    type=openapi.TYPE_STRING
+)
+
 
 class SignIn(APIView):
     authentication_classes = [BasicAuthentication]
@@ -32,3 +40,4 @@ class SignIn(APIView):
         user =request.user
         tkn, user = Token.objects.get_or_create(user=user)
         return Response({"token": tkn.key}, status=status.HTTP_200_OK)
+
