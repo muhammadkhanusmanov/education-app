@@ -4,7 +4,7 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from apis.views import (
-   SignIn, SignUp
+   SignIn, SignUp, MessageView
 )
 
 
@@ -23,6 +23,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('signin/', SignIn.as_view()),
     path('create/user/',SignUp.as_view()),
+    path('send/message/',MessageView.as_view()),
+    path('get/message/<str:pk>',MessageView.as_view()),
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
