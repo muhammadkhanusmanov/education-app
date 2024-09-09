@@ -9,8 +9,9 @@ from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from rest_framework import generics
 from rest_framework.decorators import api_view, authentication_classes, permission_classes 
-from .serializers import MessageSerializer
+from .serializers import MessageSerializer,MessagesSerializer
 from .models import Message
 
 basic_auth_param = openapi.Parameter(
@@ -154,9 +155,13 @@ class MessageView(APIView):
     
     def get(self, request, pk: str):
         user = request.user
+        if pk == 'msg':
+            msg = Message.objects.filter(recipient=user).order_by('-created_at')
+            serializer = MessagesSerializer(msg, many=True)
+            return Response(serializer.data,status=status.HTTP_200_OK)
         try:
             msg = Message.objects.get(recipient=user,id=pk)
-            msg = MessageSerializer(msg).data
+            msg = MessageSerializer(data=msg, many=True).data
             return Response(msg,status=status.HTTP_200_OK)
         except:
             return Response({'error':'bad request'},status=status.HTTP_400_BAD_REQUEST)
@@ -164,7 +169,7 @@ class MessageView(APIView):
         
         
         
-
+# class ListMessages():
     # def get(self,request):
     #     user = request.user
     #     messages = Message.objects.filter(sender=user).order_by('-created_at')
