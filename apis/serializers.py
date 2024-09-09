@@ -10,6 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'full_name', 'status']
         read_only_fields = ['id']
+        
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -19,4 +20,13 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ['id', 'sender', 'recipient', 'content', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+class MessagesSerializer(serializers.ModelSerializer):
+    sender = UserSerializer(read_only=True)
+    recipient = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Message
+        fields = ['id', 'sender', 'recipient']
         read_only_fields = ['id', 'created_at']
