@@ -19,3 +19,30 @@ class Survey(models.Model):
     
     def __str__(self):
         return f'{self.name} ({created_at} - {untill_at})'
+    
+class Vote(models.Model):
+    student = models.ForeignKey(User,on_delete=models.CASCADE, related_name='vote')
+    survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='vote')
+    skill1 = models.IntegerField(default=0)
+    skill2 = models.IntegerField(default=0)
+    skill3 = models.IntegerField(default=0)
+    skill4 = models.IntegerField(default=0)
+    skill5 = models.IntegerField(default=0)
+    skill6 = models.IntegerField(default=0)
+    skill7 = models.IntegerField(default=0)
+    skill8 = models.IntegerField(default=0)
+    skill9 = models.IntegerField(default=0)
+    skill10 = models.IntegerField(default=0)
+    choice1 = models.CharField(max_length=10)
+    choice2 = models.CharField(max_length=10)
+    choice3 = models.CharField(max_length=10)
+    choice4 = models.CharField(max_length=10)
+    choice5 = models.CharField(max_length=10)
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['student', 'survey'], name='unique_student_survey')
+        ]
+
+    def __str__(self) -> str:
+        return f'{self.student.username} - {self.survey.name}'
