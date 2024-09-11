@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
-    Message
+    Message, Survey, Vote
 )
 class UserSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='last_name')
@@ -30,3 +30,14 @@ class MessagesSerializer(serializers.ModelSerializer):
         model = Message
         fields = ['id', 'sender', 'recipient']
         read_only_fields = ['id', 'created_at']
+
+class SurveySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Survey
+        fields = '__all__'
+
+
+class VoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vote
+        fields = '__all__'
