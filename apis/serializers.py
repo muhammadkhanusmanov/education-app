@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
-    Message, Survey, Vote,Lesson
+    Message, Survey, Vote,Lesson, Task
 )
 class UserSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='last_name')
@@ -50,4 +50,7 @@ class LessonSerializer(serializers.ModelSerializer):
         model = Lesson
         fields = ['id', 'name', 'description', 'teacher', 'video_link', 'file', 'students', 'lesson_date']
         read_only_fields = ['id']
+
+
+
 
