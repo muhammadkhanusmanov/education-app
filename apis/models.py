@@ -14,11 +14,11 @@ class Survey(models.Model):
     name = models.CharField(max_length=50)
     students = models.ManyToManyField(User, related_name='survey')
     teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='survey_teacher')
-    untill_at = models.CharField(max_length=45)
+    until_at = models.DateTimeField(default=None,blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f'{self.name} ({self.created_at} - {self.untill_at})'
+        return f'{self.name} ({self.created_at} - {self.until_at})'
     
 class Vote(models.Model):
     student = models.ForeignKey(User,on_delete=models.CASCADE, related_name='vote')
