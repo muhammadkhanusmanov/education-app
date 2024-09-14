@@ -50,7 +50,7 @@ class Vote(models.Model):
 
 class Task(models.Model):
     name = models.CharField(max_length=50)
-    description = models.TextField(null=True, blank=True)
+    description = models.TextField()
     file = models.FileField(upload_to='files/')
     
     def __str__(self):
