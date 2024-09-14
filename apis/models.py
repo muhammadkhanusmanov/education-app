@@ -59,9 +59,9 @@ class Task(models.Model):
 class Lesson(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField(null=True, blank=True)
-    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='lesson')
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='lesson_teacher')
     video_link = models.CharField(max_length=150, blank=True, null=True)
-    file = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='lesson')
+    file = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='lesson_students', blank=True, null=True)
     students = models.ManyToManyField(User)
     lesson_date = models.DateTimeField()
     
