@@ -9,10 +9,12 @@ from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.utils import timezone
 from rest_framework import generics
 from rest_framework.decorators import api_view, authentication_classes, permission_classes 
-from .serializers import MessageSerializer,MessagesSerializer
-from .models import Message
+from .serializers import MessageSerializer,MessagesSerializer, SurveySerializer, VoteSerializer
+from .models import Message,Survey,Vote
+
 
 basic_auth_param = openapi.Parameter(
     'Basic Authorization',
@@ -165,14 +167,48 @@ class MessageView(APIView):
             return Response(msg,status=status.HTTP_200_OK)
         except:
             return Response({'error':'bad request'},status=status.HTTP_400_BAD_REQUEST)
-            
+
+class SurveyView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_summary="Create a new survey (only Admin)",
+        request_body=SurveySerializer,
+        manual_parameters=[token_auth_param],
+        responses={
+            201: SurveySerializer,
+            400: 'Bad Request',
+            403: 'Forbidden: Only Admins can create surveys'
+        }
+    )
+    
+    def put(self, request):
+        data = request.data
+        user = request.user
+        if user.last_name != 'Admin':
+            return Response({'status': False},status=status.HTTP_403_FORBIDDEN)
+        serl = SurveySerializer(data=data)
+        if serl.is_valid():
+            serl.save()
+            return Response(serl.data, status=status.HTTP_201_CREATED)
+        return Response(serl.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @swagger_auto_schema(
+        operation_summary="Get the surveys user can vote",
+        manual_parameters=[token_auth_param],
+        responses={
+            200: SurveySerializer(many=True),
+            403: 'Forbidden: Authentication required',
+        }
+    )
+    
+    def get(self, request):
+        user = request.user
+        current_time = timezone.now()
+        surveys = Survey.objects.filter(until_at__gt=current_time, students__in=[user])
+        serializer = SurveySerializer(surveys, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
         
         
-        
-# class ListMessages():
-    # def get(self,request):
-    #     user = request.user
-    #     messages = Message.objects.filter(sender=user).order_by('-created_at')
-    #     serializer = MessageSerializer(messages, many=True, fields=('id', 'sender', 'recipient', 'created_at'))
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
         
