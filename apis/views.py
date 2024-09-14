@@ -12,8 +12,8 @@ from drf_yasg import openapi
 from django.utils import timezone
 from rest_framework import generics
 from rest_framework.decorators import api_view, authentication_classes, permission_classes 
-from .serializers import MessageSerializer,MessagesSerializer, SurveySerializer, VoteSerializer
-from .models import Message,Survey,Vote
+from .serializers import MessageSerializer,MessagesSerializer, SurveySerializer, VoteSerializer,Lesson
+from .models import Message,Survey,Vote,Lesson,Task
 
 
 basic_auth_param = openapi.Parameter(
@@ -215,6 +215,17 @@ class VoteView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     
+    @swagger_auto_schema(
+        operation_summary="Create a new vote",
+        request_body=VoteSerializer,
+        manual_parameters=[token_auth_param],
+        responses={
+            201: VoteSerializer,
+            400: 'Bad Request',
+            403: 'Forbidden: Authentication required'
+        }
+    )
+    
     def put(self, request):
         data = request.data
         user = request.user
@@ -225,4 +236,52 @@ class VoteView(APIView):
             return Response(serz.data, status=status.HTTP_201_CREATED)
         return Response(serz.errors, status=status.HTTP_400_BAD_REQUEST) 
 
-        
+
+class LessonView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_summary = 'Create a Lesson',
+        manual_parameters = [token_auth_param],
+        request_body=LessonSerializer,
+        responses={
+            201: LessonSerializer,
+            400: 'Bad Request: Bad data',
+            403: 'Forbidden'
+        }
+    )
+    def post(self, request):
+        user = request.user
+        if user.last_name != 'Admin':
+            return Response({'status': False, 'message': 'Only admins can create lessons'}, status=status.HTTP_403_FORBIDDEN)
+        data = request.data
+        serializer = LessonSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @swagger_auto_schema(
+        operation_summary = 'Add extra data to the lesson',
+        manual_parameters = [token_auth_param],
+        request_body=LessonSerializer,
+        responses={
+            200: LessonSerializer,
+            400: 'Bad Request:Bad data',
+            403: 'Forbidden'
+        }
+    )
+    def put(self,request):
+        user = request.user
+        if user.last_name != 'Teacher':
+            return Response({'status': False, 'message': 'Only teachers can update lessons'}, status=status.HTTP_403_FORBIDDEN)
+        data = request.data
+        id = data['id']
+        lesson = Lesson.objects.get(id=id)
+        serializer = LessonSerializer(lesson, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
