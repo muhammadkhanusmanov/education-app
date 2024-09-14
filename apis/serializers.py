@@ -34,7 +34,8 @@ class MessagesSerializer(serializers.ModelSerializer):
 class SurveySerializer(serializers.ModelSerializer):
     class Meta:
         model = Survey
-        fields = '__all__'
+        fields = ['id', 'name', 'students', 'teacher', 'untill_at', 'created_at']
+        read_only_fields = ['created_at']
 
 
 class VoteSerializer(serializers.ModelSerializer):
