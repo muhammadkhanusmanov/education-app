@@ -46,3 +46,20 @@ class Vote(models.Model):
 
     def __str__(self) -> str:
         return f'{self.student.username} - {self.survey.name}'
+
+
+class Lesson(models.Model):
+    name = models.CharField(max_length=50)
+    description = models.TextField(null=True, blank=True)
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='lesson')
+    video_link = models.CharField(max_length=150, blank=True, null=True)
+    file = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='lesson')
+    students = models.ManyToManyField(User)
+    lesson_date = models.DateTimeField()
+    
+    def __str__(self):
+        return f'{self.name} - {self.lesson_date}'
+    
+
+
+    
