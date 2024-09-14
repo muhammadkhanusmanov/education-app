@@ -48,6 +48,14 @@ class Vote(models.Model):
         return f'{self.student.username} - {self.survey.name}'
 
 
+class Task(models.Model):
+    name = models.CharField(max_length=50)
+    description = models.TextField(null=True, blank=True)
+    file = models.FileField(upload_to='files/')
+    
+    def __str__(self):
+        return self.name
+
 class Lesson(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField(null=True, blank=True)
