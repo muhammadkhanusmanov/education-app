@@ -211,4 +211,18 @@ class SurveyView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
         
         
+class VoteView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def put(self, request):
+        data = request.data
+        user = request.user
+        data['student'] = user.ID
+        serz = VoteSerializer(data=data)
+        if serz.is_valid():
+            serz.save()
+            return Response(serz.data, status=status.HTTP_201_CREATED)
+        return Response(serz.errors, status=status.HTTP_400_BAD_REQUEST) 
+
         
