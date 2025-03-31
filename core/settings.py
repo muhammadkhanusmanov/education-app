@@ -44,6 +44,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'core.urls'
 
+CSRF_TRUSTED_ORIGINS = ['https://c8e1-213-230-87-2.ngrok-free.app']
+
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -62,7 +65,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 
 # Database

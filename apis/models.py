@@ -55,8 +55,16 @@ class Task(models.Model):
     
     def __str__(self):
         return self.name
+    
+    
+class Module(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
 
-class Lesson(models.Model):
+    def __str__(self):
+        return self.name
+
+class Lessons(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField(null=True, blank=True)
     teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='lesson_teacher')
@@ -64,6 +72,8 @@ class Lesson(models.Model):
     file = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='lesson_students', blank=True, null=True)
     students = models.ManyToManyField(User)
     lesson_date = models.DateTimeField()
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='lessons')
+
     
     def __str__(self):
         return f'{self.name} - {self.lesson_date}'

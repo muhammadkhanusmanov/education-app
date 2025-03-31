@@ -12,8 +12,8 @@ from drf_yasg import openapi
 from django.utils import timezone
 from rest_framework import generics
 from rest_framework.decorators import api_view, authentication_classes, permission_classes 
-from .serializers import MessageSerializer,MessagesSerializer, SurveySerializer, VoteSerializer,Lesson
-from .models import Message,Survey,Vote,Lesson,Task
+from .serializers import MessageSerializer,MessagesSerializer, SurveySerializer, VoteSerializer,LessonSerializer, UserSerializer,ModuleSerializer
+from .models import Message,Survey,Vote,Lessons,Task,Module
 
 
 basic_auth_param = openapi.Parameter(
@@ -33,6 +33,7 @@ token_auth_param = openapi.Parameter(
 
 class SignIn(APIView):
     authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     @swagger_auto_schema(
         manual_parameters=[basic_auth_param],
         responses={
@@ -42,9 +43,11 @@ class SignIn(APIView):
         description='User login'
     )
     def post(self, request, *args, **kwargs):
-        user =request.user
-        tkn, user = Token.objects.get_or_create(user=user)
-        return Response({"token": tkn.key}, status=status.HTTP_200_OK)
+        user = request.user
+        print(user)
+        tkn, user1 = Token.objects.get_or_create(user=user)
+        sr = UserSerializer(user)
+        return Response({"token": tkn.key, 'user':sr.data}, status=status.HTTP_200_OK)
 
 class SignUp(APIView):
     authentication_classes = [TokenAuthentication]
@@ -97,7 +100,7 @@ class SignUp(APIView):
                 last_name=usr_sts
             )
             new_user.save()
-            tkn = Token.objects.get(user=new_user)
+            tkn = Token.objects.create(user=new_user)
             return Response({'token':tkn.key},status=status.HTTP_200_OK)
         except:
             return Response({'error':'bad request'},status=status.HTTP_400_BAD_REQUEST)
@@ -226,6 +229,7 @@ class VoteView(APIView):
         }
     )
     
+    
     def put(self, request):
         data = request.data
         user = request.user
@@ -237,12 +241,56 @@ class VoteView(APIView):
         return Response(serz.errors, status=status.HTTP_400_BAD_REQUEST) 
 
 
+from django.contrib.auth.models import User, Group
+from django.http import JsonResponse
+
+
+class UserView(APIView):
+    def get(self,request):
+        teachers = User.objects.filter(last_name='Teacher')
+        students = User.objects.filter(last_name='Student')
+
+        return Response({
+            'teachers': [{'id': user.id, 'username': user.username, 'email': user.email} for user in teachers],
+            'students': [{'id': user.id, 'username': user.username, 'email': user.email} for user in students],
+        })
+
+
+class CreateModule(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    @swagger_auto_schema(
+        operation_description="Create a new module",
+        request_body=ModuleSerializer,
+        responses={201: ModuleSerializer, 400: 'Bad Request'}
+    )
+    def post(self, request):
+        user = request.user
+        if user.last_name != 'Admin':
+            return Response({'status': False, 'message': 'Only admins can create LessonS'}, status=status.HTTP_403_FORBIDDEN)
+        data = request.data
+        try:
+            module = Module.objects.create(
+                name=data['name'],
+                description=data.get('description', '')
+            )
+            module.save()
+            return Response({"status": "Module created successfully"}, status=status.HTTP_201_CREATED)
+        except KeyError as e:
+            return Response({"error": f"Missing required field: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get(self, request):
+        modules = Module.objects.all()
+        serializer = ModuleSerializer(modules, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK) 
+    
+
 class LessonView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     
     @swagger_auto_schema(
-        operation_summary = 'Create a Lesson',
+        operation_summary = 'Create a Lessons',
         manual_parameters = [token_auth_param],
         request_body=LessonSerializer,
         responses={
@@ -254,16 +302,16 @@ class LessonView(APIView):
     def post(self, request):
         user = request.user
         if user.last_name != 'Admin':
-            return Response({'status': False, 'message': 'Only admins can create lessons'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'status': False, 'message': 'Only admins can create LessonS'}, status=status.HTTP_403_FORBIDDEN)
         data = request.data
         serializer = LessonSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response({'status':True}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @swagger_auto_schema(
-        operation_summary = 'Add extra data to the lesson',
+        operation_summary = 'Add extra data to the Lessons',
         manual_parameters = [token_auth_param],
         request_body=LessonSerializer,
         responses={
@@ -272,16 +320,18 @@ class LessonView(APIView):
             403: 'Forbidden'
         }
     )
+
+
     def put(self,request):
         user = request.user
         if user.last_name != 'Teacher':
-            return Response({'status': False, 'message': 'Only teachers can update lessons'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'status': False, 'message': 'Only teachers can update LessonS'}, status=status.HTTP_403_FORBIDDEN)
         data = request.data
         id = data['id']
-        lesson = Lesson.objects.get(id=id)
-        serializer = LessonSerializer(lesson, data=data, partial=True)
+        Lessons = Lessons.objects.get(id=id)
+        serializer = LessonSerializer(Lessons, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response({'status':True}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

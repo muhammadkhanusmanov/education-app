@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
-    Message, Survey, Vote,Lesson, Task
+    Message, Survey, Vote,Lessons, Task,Module
 )
 class UserSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='last_name')
@@ -42,14 +42,28 @@ class VoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vote
         fields = '__all__'
+        
+class ModuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Module
+        fields = '__all__'
+    
 
 class LessonSerializer(serializers.ModelSerializer):
     teacher = UserSerializer(read_only=True)
+    module = ModuleSerializer
 
     class Meta:
-        model = Lesson
-        fields = ['id', 'name', 'description', 'teacher', 'video_link', 'file', 'students', 'lesson_date']
+        model = Lessons
+        fields = ['id', 'name', 'description', 'teacher', 'video_link', 'file', 'students', 'lesson_date', 'module']
         read_only_fields = ['id']
+        
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+
+
 
 
 
