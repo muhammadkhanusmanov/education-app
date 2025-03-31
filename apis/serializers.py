@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
-    Message, Survey, Vote,Lessons, Task,Module
+    Message, Survey, Vote,Lessons, Task,Module,
+    Assessment,Test,TestResult
 )
 class UserSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='last_name')
@@ -50,9 +51,6 @@ class ModuleSerializer(serializers.ModelSerializer):
     
 
 class LessonSerializer(serializers.ModelSerializer):
-    teacher = UserSerializer(read_only=True)
-    module = ModuleSerializer
-
     class Meta:
         model = Lessons
         fields = ['id', 'name', 'description', 'teacher', 'video_link', 'file', 'students', 'lesson_date', 'module']
@@ -62,8 +60,27 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        
+class AssessmentSerializer(serializers.ModelSerializer):
+    teacher = UserSerializer()
+    student = UserSerializer()
+    class Meta:
+        model = Assessment
+        fields = ['id', 'lesson', 'student', 'teacher', 'score', 'comment', 'created_at']
+        read_only_fields = ['id', 'created_at', 'teacher']
 
+class TestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Test
+        fields = ['id', 'lesson', 'title', 'description', 'excel_file', 
+                 'max_score', 'created_at', 'deadline']
+        read_only_fields = ['id', 'created_at']
 
+class TestResultSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TestResult
+        fields = ['id', 'test', 'student', 'score', 'submitted_at', 'answers']
+        read_only_fields = ['id', 'submitted_at']
 
 
 

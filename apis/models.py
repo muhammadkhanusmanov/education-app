@@ -77,7 +77,55 @@ class Lessons(models.Model):
     
     def __str__(self):
         return f'{self.name} - {self.lesson_date}'
+
+class Assessment(models.Model):
+    lesson = models.ForeignKey(Lessons, on_delete=models.CASCADE, related_name='assessments')
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_assessments')
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='given_assessments')
+    score = models.IntegerField(default=0)  # 0-100 oralig'ida baho
+    comment = models.TextField(blank=True, null=True)  # Ixtiyoriy izoh
+    created_at = models.DateTimeField(auto_now_add=True)
     
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['lesson', 'student', 'teacher'], 
+                name='unique_lesson_student_assessment'
+            )
+        ]
+        
+    def __str__(self):
+        return f'{self.student.username} - {self.lesson.name} - {self.score}'
+
+class Test(models.Model):
+    lesson = models.ForeignKey(Lessons, on_delete=models.CASCADE, related_name='tests')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    excel_file = models.FileField(upload_to='test_files/')
+    max_score = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    deadline = models.DateTimeField()
+    
+    def __str__(self):
+        return f"{self.title} - {self.lesson.name}"
+
+class TestResult(models.Model):
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='results')
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='test_results')
+    score = models.IntegerField()
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    answers = models.JSONField()  # Studentning javoblarini saqlash uchun
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['test', 'student'], 
+                name='unique_test_student'
+            )
+        ]
+    
+    def __str__(self):
+        return f"{self.student.username} - {self.test.title} - {self.score}"
 
 
     
